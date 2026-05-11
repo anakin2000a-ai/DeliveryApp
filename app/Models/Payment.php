@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Payment extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'order_id',
+        'updated_by',
+        'payment_status',
+        'amount',
+        'note',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+        ];
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+}

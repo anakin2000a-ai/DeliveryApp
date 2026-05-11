@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ServiceArea;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -21,5 +22,12 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+        ServiceArea::create([
+        'name' => 'Versmold',
+        'country' => 'Germany',
+        'postal_code' => '33775',
+        'city' => 'Versmold',
+        'is_active' => true,
+    ]);
     }
 }
