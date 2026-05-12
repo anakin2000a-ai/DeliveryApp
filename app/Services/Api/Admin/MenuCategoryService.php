@@ -93,7 +93,7 @@ class MenuCategoryService
         });
     }
 
-   public function update(MenuCategory $category, array $data): MenuCategory
+    public function update(MenuCategory $category, array $data): MenuCategory
     {
         return DB::transaction(function () use ($category, $data) {
             $restaurant = $this->getActiveRestaurant((int) $data['restaurant_id']);
@@ -139,26 +139,20 @@ class MenuCategoryService
             $requestItemIds = [];
 
             foreach ($data['items'] as $itemData) {
+                $menuItem = null;
+
                 if (! empty($itemData['id'])) {
                     $menuItem = MenuItem::query()
                         ->where('id', $itemData['id'])
                         ->where('category_id', $category->id)
                         ->first();
+                }
 
-                    if (! $menuItem) {
-                        throw new InvalidArgumentException(
-                            "Menu item ID {$itemData['id']} does not belong to this category."
-                        );
-                    }
-
+                if ($menuItem) {
                     $itemUpdateData = [];
 
                     if ((int) $menuItem->restaurant_id !== $restaurant->id) {
                         $itemUpdateData['restaurant_id'] = $restaurant->id;
-                    }
-
-                    if ((int) $menuItem->category_id !== (int) $category->id) {
-                        $itemUpdateData['category_id'] = $category->id;
                     }
 
                     if ($menuItem->name !== $itemData['name']) {
