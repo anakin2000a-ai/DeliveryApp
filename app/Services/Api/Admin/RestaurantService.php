@@ -2,6 +2,7 @@
 
 namespace App\Services\Api\Admin;
 
+use App\Models\MenuCategory;
 use App\Models\Restaurant;
 use App\Models\ServiceArea;
 use App\Services\Api\Admin\PointInPolygonService;
@@ -117,6 +118,24 @@ class RestaurantService
     public function delete(Restaurant $restaurant): void
     {
         $restaurant->delete();
+    }
+    public function getByRestaurant(int $restaurantId, array $filters = []): LengthAwarePaginator
+    {
+        return MenuCategory::query()
+            ->with([
+                'restaurant:id,name,status',
+                'menuItems.media',
+            ])
+            ->where('restaurant_id', $restaurantId)
+            ->when(isset($filters['is_active']), function ($query) use ($filters) {
+                $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN));
+            })
+            ->when(isset($filters['search']), function ($query) use ($filters) {
+                $query->where('name', 'like', '%' . $filters['search'] . '%');
+            })
+            ->orderBy('sort_order')
+            ->latest()
+            ->paginate((int) ($filters['per_page'] ?? 15));
     }
 
     public function findById(int $id): Restaurant

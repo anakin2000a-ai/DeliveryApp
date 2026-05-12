@@ -142,4 +142,30 @@ class RestaurantController extends Controller
             ], 500);
         }
     }
+    public function getByRestaurant(Restaurant $restaurant, Request $request): JsonResponse
+    {
+        try {
+            $categories = $this->restaurantService->getByRestaurant(
+                $restaurant->id,
+                [
+                    'is_active' => $request->query('is_active'),
+                    'search' => $request->query('search'),
+                    'per_page' => $request->query('per_page', 15),
+                ]
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Restaurant menu categories fetched successfully.',
+                'data' => $categories,
+            ]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch restaurant menu categories.',
+            ], 500);
+        }
+    }
 }

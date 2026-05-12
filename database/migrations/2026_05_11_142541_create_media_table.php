@@ -25,6 +25,7 @@ return new class extends Migration
             $table->enum('type', ['image'])->default('image');
 
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('menu_item_id');
         });

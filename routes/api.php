@@ -3,3 +3,4 @@
 
 require __DIR__ . '/api/auth.php';
 require __DIR__ . '/api/restaurants.php';
+require __DIR__ . '/api/menu_category.php';
