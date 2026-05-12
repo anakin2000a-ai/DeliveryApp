@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+//
+class StoreRestaurantRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->role === 'admin';
+    }
+
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:150', 'unique:restaurants,name'],
+            'service_area_id' => ['required', 'integer', 'exists:service_areas,id'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'status' => ['required', 'string', 'in:active,inactive'],
+
+            'description' => ['nullable', 'string'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'email' => ['nullable', 'email', 'max:150', 'unique:restaurants,email'],
+            'address' => ['nullable', 'string'],
+            'opening_time' => ['nullable', 'date_format:H:i'],
+            'closing_time' => ['nullable', 'date_format:H:i', 'after:opening_time'],
+        ];
+    }
+}
