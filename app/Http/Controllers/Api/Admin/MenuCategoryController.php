@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreMenuCategoryRequest;
-use App\Http\Requests\UpdateMenuCategoryRequest;
+use App\Http\Requests\Admin\StoreMenuCategoryRequest;
+use App\Http\Requests\Admin\UpdateMenuCategoryRequest;
 use App\Models\MenuCategory;
 use App\Services\Api\Admin\MenuCategoryService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

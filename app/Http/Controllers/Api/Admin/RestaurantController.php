@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreRestaurantRequest;
-use App\Http\Requests\UpdateRestaurantRequest;
+use App\Http\Requests\Admin\StoreRestaurantRequest;
+use App\Http\Requests\Admin\UpdateRestaurantRequest;
 use App\Models\Restaurant;
 use App\Services\Api\Admin\RestaurantService;
 use Illuminate\Http\JsonResponse;

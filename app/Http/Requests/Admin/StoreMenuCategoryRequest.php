@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateMenuCategoryRequest extends FormRequest
+class StoreMenuCategoryRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,10 +14,6 @@ class UpdateMenuCategoryRequest extends FormRequest
 
     public function rules(): array
     {
-        $categoryId = $this->route('menuCategory')?->id
-            ?? $this->route('menu_category')?->id
-            ?? $this->route('id');
-
         return [
             'restaurant_id' => [
                 'required',
@@ -30,8 +26,7 @@ class UpdateMenuCategoryRequest extends FormRequest
                 'string',
                 'max:150',
                 Rule::unique('menu_categories', 'name')
-                    ->where('restaurant_id', $this->input('restaurant_id'))
-                    ->ignore($categoryId),
+                    ->where('restaurant_id', $this->input('restaurant_id')),
             ],
 
             'sort_order' => [
@@ -51,17 +46,13 @@ class UpdateMenuCategoryRequest extends FormRequest
                 'min:1',
             ],
 
-            'items.*.id' => [
-                'nullable',
-                'integer',
-                'exists:menu_items,id',
-            ],
-
             'items.*.name' => [
                 'required',
                 'string',
                 'max:150',
                 'distinct',
+                Rule::unique('menu_items', 'name')
+                    ->where('restaurant_id', $this->input('restaurant_id')),
             ],
 
             'items.*.description' => [
@@ -93,21 +84,6 @@ class UpdateMenuCategoryRequest extends FormRequest
                 'mimes:jpg,jpeg,png,webp',
                 'max:4096',
             ],
-
-            'delete_media_ids' => [
-                'nullable',
-                'array',
-            ],
-
-            'delete_media_ids.*' => [
-                'integer',
-                'exists:media,id',
-            ],
-
-            'delete_missing_items' => [
-                'nullable',
-                'boolean',
-            ],
         ];
     }
 
@@ -124,24 +100,16 @@ class UpdateMenuCategoryRequest extends FormRequest
             'items.array' => 'Menu items must be an array.',
             'items.min' => 'At least one menu item is required.',
 
-            'items.*.id.exists' => 'Selected menu item does not exist.',
-
             'items.*.name.required' => 'Menu item name is required.',
+            'items.*.name.unique' => 'This menu item name already exists for this restaurant.',
             'items.*.name.distinct' => 'Menu item names must be unique in the same request.',
 
             'items.*.price.required' => 'Menu item price is required.',
             'items.*.price.numeric' => 'Menu item price must be a number.',
 
-            'items.*.status.in' => 'Menu item status must be active or inactive.',
-
             'items.*.images.*.image' => 'Each uploaded file must be an image.',
             'items.*.images.*.mimes' => 'Images must be jpg, jpeg, png, or webp.',
             'items.*.images.*.max' => 'Each image must not be larger than 4MB.',
-
-            'delete_media_ids.array' => 'Deleted media IDs must be an array.',
-            'delete_media_ids.*.exists' => 'Selected media file does not exist.',
-
-            'delete_missing_items.boolean' => 'Delete missing items must be true or false.',
         ];
     }
 }
