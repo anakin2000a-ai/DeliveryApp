@@ -3,9 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use App\Jobs\NewUserCreatedJob;
+use App\Models\CustomerAddress;
+use App\Models\ServiceArea;
 
 class AuthController extends Controller
 {
@@ -42,4 +50,5 @@ class AuthController extends Controller
             'message' => 'Logout successful.',
         ]);
     }
+     
 }
