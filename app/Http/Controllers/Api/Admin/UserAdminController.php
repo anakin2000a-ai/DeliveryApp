@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AdminUpdateUserRequest;
+use App\Http\Requests\Admin\AdminUpdateUserRequest;
 use App\Models\User;
+use App\Services\Api\Admin\UserAdminService;
 use App\Services\UserService;
 use Exception;
 use Illuminate\Http\Request;
@@ -12,7 +13,7 @@ use Illuminate\Http\Request;
 class UserAdminController extends Controller
 {
     public function __construct(
-        private UserService $userService
+        private UserAdminService $userService
     ) {}
 
     public function index(Request $request)
