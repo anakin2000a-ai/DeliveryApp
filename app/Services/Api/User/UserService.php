@@ -9,7 +9,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
-
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Validation\ValidationException;
 class UserService
 {
     public function register(array $data): User
@@ -63,6 +64,47 @@ class UserService
             return $user->load('addresses');
         });
     }
+    public function getUsersForAdmin(array $filters): LengthAwarePaginator
+{
+    $perPage = $filters['per_page'] ?? 10;
+    $search = $filters['search'] ?? null;
+    $role = $filters['role'] ?? null;
+
+    return User::query()
+        ->with('addresses')
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        })
+        ->when($role, function ($query) use ($role) {
+            $query->where('role', $role);
+        })
+        ->latest()
+        ->paginate($perPage);
+}
+
+public function updateUserByAdmin(User $user, array $data): User
+{
+    $updateData = [];
+
+    foreach (['first_name', 'last_name', 'email', 'phone', 'birthday', 'role'] as $field) {
+        if (array_key_exists($field, $data)) {
+            $updateData[$field] = $data[$field];
+        }
+    }
+
+    if (!empty($data['password'])) {
+        $updateData['password'] = Hash::make($data['password']);
+    }
+
+    $user->update($updateData);
+
+    return $user->load('addresses');
+}
 
     private function saveAddress(User $user, array $addressData, int $index): CustomerAddress
     {
