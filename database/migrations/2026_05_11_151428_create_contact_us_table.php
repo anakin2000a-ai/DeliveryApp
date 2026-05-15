@@ -16,12 +16,22 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
 
+            $table->foreignId('replied_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
             $table->string('name', 150);
-            $table->string('email', 150)->required();
+            $table->string('email', 150);
             $table->string('phone', 30)->nullable();
 
             $table->string('subject', 200);
-            $table->text('message')->required();
+            $table->text('message');
+
+            $table->text('admin_reply')->nullable();
+            $table->timestamp('read_at')->nullable();
+            $table->timestamp('replied_at')->nullable();
+            $table->timestamp('closed_at')->nullable();
 
             $table->enum('status', ['new', 'read', 'replied', 'closed'])
                 ->default('new');
@@ -29,6 +39,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('user_id');
+            $table->index('replied_by');
             $table->index('email');
             $table->index('status');
         });
