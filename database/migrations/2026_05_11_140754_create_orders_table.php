@@ -32,9 +32,9 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->text('delivery_address');
-            $table->string('delivery_city', 150);
-            $table->string('delivery_postal_code', 20);
-            $table->string('delivery_country', 100)->default('Germany');
+            // $table->string('delivery_city', 150);
+            // $table->string('delivery_postal_code', 20);
+            // $table->string('delivery_country', 100)->default('Germany');
             $table->decimal('delivery_latitude', 10, 8);
             $table->decimal('delivery_longitude', 11, 8);
 
@@ -47,7 +47,7 @@ return new class extends Migration
                 'auto_rejected',
                 'requested',
                 'paid',
-                'not_paid',
+                'not_paid','cancelled',
             ])->default('pending');
 
             $table->enum('payment_status', [
@@ -71,6 +71,7 @@ return new class extends Migration
             $table->timestamp('pending_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
             $table->timestamp('auto_rejected_at')->nullable();
             $table->timestamp('requested_at')->nullable();
             $table->timestamp('paid_at')->nullable();

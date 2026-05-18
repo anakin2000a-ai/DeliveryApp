@@ -1,0 +1,54 @@
+<?php
+namespace App\Http\Requests\User;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class UpdateOrderRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->role === 'customer';
+    }
+
+    public function rules(): array
+    {
+        return [
+            'restaurant_id' => ['sometimes', 'exists:restaurants,id'],
+
+            'customer_address_id' => ['nullable', 'exists:customer_addresses,id'],
+
+            'service_area_id' => [
+                'required_without:customer_address_id',
+                'nullable',
+                'exists:service_areas,id',
+            ],
+
+            'delivery_address' => [
+                'required_without:customer_address_id',
+                'nullable',
+                'string',
+            ],
+
+            'delivery_latitude' => [
+                'required_without:customer_address_id',
+                'nullable',
+                'numeric',
+                'between:-90,90',
+            ],
+
+            'delivery_longitude' => [
+                'required_without:customer_address_id',
+                'nullable',
+                'numeric',
+                'between:-180,180',
+            ],
+
+            'customer_note' => ['nullable', 'string'],
+
+            'items' => ['sometimes', 'array', 'min:1'],
+            'items.*.menu_item_id' => ['required_with:items', 'exists:menu_items,id'],
+            'items.*.quantity' => ['required_with:items', 'integer', 'min:1'],
+            'items.*.customer_note' => ['nullable', 'string'],
+        ];
+    }
+}

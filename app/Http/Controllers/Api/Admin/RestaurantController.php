@@ -56,7 +56,7 @@ class RestaurantController extends Controller
                 'success' => true,
                 'message' => 'Restaurant created successfully.',
                 'data' => $restaurant->load([
-                    'creator:id,name,email',
+                    'creator:id,first_name,last_name,email',
                     'serviceArea:id,name,city,postal_code,country',
                 ]),
             ], 201);
@@ -70,7 +70,7 @@ class RestaurantController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create restaurant.',
+                'message' => 'Failed to create restaurant.', 'message' => $e->getMessage(),
             ], 500);
         }
     }

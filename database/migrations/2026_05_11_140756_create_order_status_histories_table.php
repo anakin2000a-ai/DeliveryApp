@@ -27,7 +27,7 @@ return new class extends Migration
                 'auto_rejected',
                 'requested',
                 'paid',
-                'not_paid',
+                'not_paid','cancelled'
             ]);
 
             $table->enum('new_status', [
@@ -37,7 +37,7 @@ return new class extends Migration
                 'auto_rejected',
                 'requested',
                 'paid',
-                'not_paid',
+                'not_paid','cancelled'
             ]);
 
             $table->text('note')->nullable();
