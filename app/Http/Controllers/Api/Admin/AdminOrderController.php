@@ -3,6 +3,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApproveOrderRequest;
+use App\Http\Requests\Admin\DeleteAllOrdersRequest;
+use App\Http\Requests\Admin\FilterOrdersRequest;
 use App\Models\Order;
 use App\Services\Api\Admin\AdminOrderService;
 use Illuminate\Http\JsonResponse;
@@ -103,6 +105,87 @@ class AdminOrderController extends Controller
                 'success' => false,
                 'message' => 'Failed to update order payment.',
                 'error' => $e->getMessage(),
+            ], 422);
+        }
+    }
+     // List orders with filters
+    public function index(FilterOrdersRequest $request): JsonResponse
+    {
+        try {
+            $orders = $this->adminOrderService->listOrders($request->validated());
+            return response()->json([
+                'success' => true,
+                'data' => $orders,
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve orders.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // Show specific order
+    public function show(Order $order): JsonResponse
+    {
+        try {
+            $order = $this->adminOrderService->showOrder($order->id);
+
+            // Limit customer fields to name and location
+            $order->customer = [
+                'first_name' => $order->customer->first_name,
+                'last_name' => $order->customer->last_name,
+                'delivery_address' => $order->delivery_address,
+                'delivery_latitude' => $order->delivery_latitude,
+                'delivery_longitude' => $order->delivery_longitude,
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $order,
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.',
+                'error' => $e->getMessage(),
+            ], 404);
+        }
+    }
+
+     // Delete a single order
+    public function destroy(Order $order): JsonResponse
+    {
+        try {
+            $this->adminOrderService->deleteOrder($order->id);
+            return response()->json([
+                'success' => true,
+                'message' => 'Order deleted successfully.'
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete order.',
+                'error' => $e->getMessage()
+            ], 422);
+        }
+    }
+
+    // Delete all orders of a given status
+    public function destroyAll(DeleteAllOrdersRequest $request, string $status): JsonResponse
+    {
+        try {
+            $deletedCount = $this->adminOrderService->deleteOrdersByStatus($status);
+            return response()->json([
+                'success' => true,
+                'message' => "Deleted {$deletedCount} orders with status '{$status}'."
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete orders.',
+                'error' => $e->getMessage()
             ], 422);
         }
     }

@@ -189,4 +189,74 @@ class AdminOrderService
             return $order->refresh();
         });
     }
+    public function listOrders(array $filters)
+    {
+        return Order::query()
+            ->with(['items', 'customer'])
+            ->when($filters['status'] ?? null, fn($q,$status) => $q->where('status',$status))
+            ->when($filters['start_date'] ?? null, fn($q,$date) => $q->whereDate('created_at','>=',$date))
+            ->when($filters['end_date'] ?? null, fn($q,$date) => $q->whereDate('created_at','<=',$date))
+            ->orderBy('created_at','desc')
+            ->paginate($filters['per_page'] ?? 15);
+    }
+    public function showOrder(int $orderId)
+    {
+        return Order::query()
+            ->with([
+                'items' => fn($q) => $q->select(
+                    'id',
+                    'order_id',
+                    'item_name',
+                    'item_price',
+                    'quantity',
+                    'line_total',
+                    'customer_note'
+                ),
+                'customer' => fn($q) => $q->select(
+                    'id',
+                    'first_name',
+                    'last_name',
+                    'email', // optional if needed
+                    'phone',
+                    'birthday'
+                ),
+                'payments' => fn($q) => $q->select(
+                    'id',
+                    'order_id',
+                    'payment_status',
+                    'amount'
+                ),
+                'losses' => fn($q) => $q->select(
+                    'id',
+                    'order_id',
+                    'amount',
+                    'reason',
+                    'recorded_by'
+                ),
+            ])
+            ->findOrFail($orderId)
+            ->makeHidden(['service_area_id']); // hide service area if present
+    }
+
+     // Delete a single order if status is allowed
+    public function deleteOrder(int $orderId): void
+    {
+        $order = Order::query()
+            ->whereIn('status',['pending','cancelled','rejected','auto_rejected'])
+            ->findOrFail($orderId);
+
+        $order->delete();
+    }
+
+    // Delete all orders by a given status
+    public function deleteOrdersByStatus(string $status): int
+    {
+        if (!in_array($status,['pending','cancelled','rejected','auto_rejected'])) {
+            throw new Exception("Cannot delete orders with status '{$status}'.");
+        }
+
+        return Order::query()
+            ->where('status',$status)
+            ->delete();
+    }
 }
