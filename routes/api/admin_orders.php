@@ -21,4 +21,8 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     // Delete all orders with a specific status
     Route::delete('/orders/remove-all/{status}', [AdminOrderController::class,'destroyAll']);
 
+
+    Route::get('/orders/payments/all', [AdminOrderController::class,'payments']);
+    Route::get('/orders/losses/all', [AdminOrderController::class,'losses']);
+
 });

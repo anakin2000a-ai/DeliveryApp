@@ -3,8 +3,9 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ApproveOrderRequest;
-use App\Http\Requests\Admin\DeleteAllOrdersRequest;
 use App\Http\Requests\Admin\FilterOrdersRequest;
+use App\Http\Requests\Admin\LossReportRequest;
+use App\Http\Requests\Admin\PaymentReportRequest;
 use App\Models\Order;
 use App\Services\Api\Admin\AdminOrderService;
 use Illuminate\Http\JsonResponse;
@@ -173,7 +174,7 @@ class AdminOrderController extends Controller
     }
 
     // Delete all orders of a given status
-    public function destroyAll(DeleteAllOrdersRequest $request, string $status): JsonResponse
+    public function destroyAll( string $status): JsonResponse
     {
         try {
             $deletedCount = $this->adminOrderService->deleteOrdersByStatus($status);
@@ -187,6 +188,40 @@ class AdminOrderController extends Controller
                 'message' => 'Failed to delete orders.',
                 'error' => $e->getMessage()
             ], 422);
+        }
+    }
+
+    public function payments(PaymentReportRequest $request): JsonResponse
+    {
+        try {
+            $data = $this->adminOrderService->payments($request->validated());
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch payments report.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function losses(LossReportRequest $request): JsonResponse
+    {
+        try {
+            $data = $this->adminOrderService->losses($request->validated());
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch losses report.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }

@@ -259,4 +259,50 @@ class AdminOrderService
             ->where('status',$status)
             ->delete();
     }
+    // Payments with sum
+    public function payments(array $filters): array
+    {
+        $query = Payment::query();
+
+        if (!empty($filters['payment_status'])) {
+            $query->where('payment_status', $filters['payment_status']);
+        }
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('created_at', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('created_at', '<=', $filters['end_date']);
+        }
+
+        $payments = $query->get(['id','order_id','payment_status','amount','note','updated_by','created_at']);
+        $totalAmount = $payments->sum('amount');
+
+        return [
+            'payments' => $payments,
+            'total_amount' => $totalAmount,
+        ];
+    }
+
+    public function losses(array $filters): array
+    {
+        $query = Loss::query();
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('created_at', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('created_at', '<=', $filters['end_date']);
+        }
+
+        $losses = $query->get(['id','order_id','amount','reason','recorded_by','created_at']);
+        $totalLoss = $losses->sum('amount');
+
+        return [
+            'losses' => $losses,
+            'total_loss_amount' => $totalLoss,
+        ];
+    }
 }
