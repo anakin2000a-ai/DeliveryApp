@@ -1,4 +1,6 @@
-<?php 
+<?php
+
+use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\OrderController;
 use Illuminate\Support\Facades\Route;
 
