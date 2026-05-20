@@ -16,27 +16,30 @@ use RuntimeException;
 
 class MenuCategoryService
 {
-    public function list(array $filters = []): LengthAwarePaginator
-    {
-        return MenuCategory::query()
-            ->with([
-                'restaurant:id,name,status',
-                'menuItems.media',
-            ])
-            ->when(isset($filters['restaurant_id']), function ($query) use ($filters) {
-                $query->where('restaurant_id', $filters['restaurant_id']);
-            })
-            ->when(isset($filters['is_active']), function ($query) use ($filters) {
-                $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN));
-            })
-            ->when(isset($filters['search']), function ($query) use ($filters) {
-                $query->where('name', 'like', '%' . $filters['search'] . '%');
-            })
-            ->orderBy('sort_order')
-            ->latest()
-            ->paginate((int) ($filters['per_page'] ?? 15));
-    }
-
+  public function list(array $filters = []): LengthAwarePaginator
+{
+    return MenuCategory::query()
+        ->with([
+            'restaurant:id,name,status',
+            'menuItems.media' => function ($query) use ($filters) {
+                if (!empty($filters['search_item'])) {
+                    $query->where('name', 'like', '%' . $filters['search_item'] . '%');
+                }
+            }
+        ])
+        ->when(isset($filters['restaurant_id']), function ($query) use ($filters) {
+            $query->where('restaurant_id', $filters['restaurant_id']);
+        })
+        ->when(isset($filters['is_active']), function ($query) use ($filters) {
+            $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN));
+        })
+        ->when(isset($filters['search']), function ($query) use ($filters) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        })
+        ->orderBy('sort_order')
+        ->latest()
+        ->paginate((int) ($filters['per_page'] ?? 15));
+}
     public function findById(int $id): MenuCategory
     {
         $category = MenuCategory::query()
