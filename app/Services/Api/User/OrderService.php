@@ -2,13 +2,18 @@
 namespace App\Services\Api\User;
 
 use App\Models\CustomerAddress;
+use App\Models\EmailLog;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\ServiceArea;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewOrderNotification;
+
 
 class OrderService
 {
@@ -99,6 +104,24 @@ class OrderService
                 'note' => 'Order created by customer.',
                 'created_at' => now(),
             ]);
+             // ----------------------
+        // Notify admin
+        // ----------------------
+        $admins = User::query()->where('role', 'admin')->get();
+
+        foreach ($admins as $admin) {
+            Mail::to($admin->email)->send(new NewOrderNotification($order));
+
+            // Log the email
+            EmailLog::create([
+                'order_id' => $order->id,
+                'user_id' => $admin->id,
+                'email' => $admin->email,
+                'subject' => "New order #{$order->order_number} received",
+                'body' => view('emails.new_order_notification', ['order' => $order])->render(),
+                'sent_at' => now(),
+            ]);
+        }
 
             return $order->load(['items']);
         });

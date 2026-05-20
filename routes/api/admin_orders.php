@@ -26,3 +26,5 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/orders/losses/all', [AdminOrderController::class,'losses']);
 
 });
+
+Route::middleware(['auth:sanctum','admin'])->get('/admin/notifications', [AdminNotificationController::class,'index']);

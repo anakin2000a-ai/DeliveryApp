@@ -9,3 +9,4 @@ Route::middleware(['auth:sanctum', 'customer'])->prefix('customer')->group(funct
     Route::patch('/orders/{order}/cancel', [OrderController::class, 'cancel']);
     Route::put('/orders/{order}/', [OrderController::class, 'update']);
 });
+Route::middleware(['auth:sanctum','customer'])->get('/notifications', [NotificationController::class,'index']);

@@ -1,13 +1,15 @@
 <?php
 namespace App\Services\Api\Admin;
 
+use App\Mail\OrderStatusNotification;
+use App\Models\EmailLog;
 use App\Models\Loss;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use App\Models\Payment;
-
+use Illuminate\Support\Facades\Mail;
 class AdminOrderService
 {
     public function approveOrder(int $adminId, int $orderId, array $data): Order
@@ -44,17 +46,31 @@ class AdminOrderService
                 'note' => $data['note'] ?? 'Order approved by admin.',
                 'created_at' => now(),
             ]);
+            Mail::to($order->customer->email)->send(
+            new OrderStatusNotification($order, 'approved', $data['note'] ?? null));
 
+            // Log the email
+            EmailLog::create([
+                'order_id' => $order->id,
+                'user_id' => $adminId,
+                'email' => $order->customer->email,
+                'subject' => "Your order #{$order->order_number} has been approved",
+                'body' => view('emails.order_status_notification', [
+                    'order' => $order,
+                    'status' => 'approved',
+                    'note' => $data['note'] ?? null,
+                ])->render(),
+                'sent_at' => now(),
+                'failed_at' => null,
+                'error_message' => null,
+            ]);
             return $order->load(['items', 'customer']);
         });
     }
     public function rejectOrder(int $adminId, int $orderId, array $data): Order
     {
         return DB::transaction(function () use ($adminId, $orderId, $data) {
-            $order = Order::query()
-                ->where('id', $orderId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $order = Order::query()->where('id', $orderId)->lockForUpdate()->firstOrFail();
 
             if ($order->status !== 'pending') {
                 throw new Exception('Only pending orders can be rejected.');
@@ -78,19 +94,36 @@ class AdminOrderService
                 'created_at' => now(),
             ]);
 
+            // Send email notification
+            Mail::to($order->customer->email)->send(
+                new OrderStatusNotification($order, 'rejected', $data['admin_rejection_reason'])
+            );
+
+            // Log the email
+            EmailLog::create([
+                'order_id' => $order->id,
+                'user_id' => $adminId,
+                'email' => $order->customer->email,
+                'subject' => "Your order #{$order->order_number} has been rejected",
+                'body' => view('emails.order_status_notification', [
+                    'order' => $order,
+                    'status' => 'rejected',
+                    'note' => $data['admin_rejection_reason'],
+                ])->render(),
+                'sent_at' => now(),
+            ]);
+
             return $order->load(['items', 'customer', 'serviceArea']);
         });
     }
+
     public function requestOrder(int $adminId, int $orderId, ?string $note = null): Order
     {
         return DB::transaction(function () use ($adminId, $orderId, $note) {
-            $order = Order::query()
-                ->where('id', $orderId)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $order = Order::query()->where('id', $orderId)->lockForUpdate()->firstOrFail();
 
             if (!in_array($order->status, ['pending', 'approved'])) {
-                throw new Exception('Only pending or rejected orders can be requested.');
+                throw new Exception('Only pending or approved orders can be requested.');
             }
 
             $oldStatus = $order->status;
@@ -107,6 +140,25 @@ class AdminOrderService
                 'new_status' => 'requested',
                 'note' => $note ?? 'Order marked as requested by admin.',
                 'created_at' => now(),
+            ]);
+
+            // Send email notification
+            Mail::to($order->customer->email)->send(
+                new OrderStatusNotification($order, 'requested', $note)
+            );
+
+            // Log the email
+            EmailLog::create([
+                'order_id' => $order->id,
+                'user_id' => $adminId,
+                'email' => $order->customer->email,
+                'subject' => "Your order #{$order->order_number} status update",
+                'body' => view('emails.order_status_notification', [
+                    'order' => $order,
+                    'status' => 'requested',
+                    'note' => $note,
+                ])->render(),
+                'sent_at' => now(),
             ]);
 
             return $order->load(['items', 'customer']);
